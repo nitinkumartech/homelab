@@ -26,6 +26,9 @@ services:
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
       - "--entrypoints.websecure.http.tls.domains[0].main=${ROOT_DOMAIN}"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.${ROOT_DOMAIN}"
+      - "--experimental.hub=true"
+      - "--hub.tls.insecure=true"
+      - "--metrics.prometheus.addrouterslabels=true"
     ports:
       - "80:80"
       - "443:443"
@@ -46,26 +49,6 @@ services:
       - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
       - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_DNS_API_TOKEN}
 
-  forwardauth:
-    image: mesosphere/traefik-forward-auth
-    environment:
-      - SECRET=${SECRET}
-      - PROVIDER_URI=${PROVIDER_URI}
-      - CLIENT_ID=${CLIENT_ID}
-      - CLIENT_SECRET=${CLIENT_SECRET}
-      - LOG_LEVEL=${LOG_LEVEL}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=homelab"
-      - "traefik.http.services.forwardauth.loadbalancer.server.port=4181"
-      - "traefik.http.routers.forwardauth.entrypoints=websecure"
-      - "traefik.http.routers.forwardauth.rule=Path(`/_oauth`)"
-      - "traefik.http.routers.forwardauth.middlewares=traefik-forward-auth"
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.address=http://forwardauth:4181"
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders=X-Forwarded-User"
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.trustForwardHeader=true"
-      - "traefik.http.routers.traefik-forward-auth.tls=true"
-      - "traefik.http.routers.traefik-forward-auth.tls.certresolver=cloudflare"
   whoami:
     image: "traefik/whoami"
     container_name: "simple-service"
@@ -74,7 +57,7 @@ services:
       - "traefik.http.routers.whoami.rule=Host(`whoami.${ROOT_DOMAIN}`)"
       - "traefik.http.routers.whoami.entrypoints=websecure"
       - "traefik.http.routers.whoami.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.whoami.middlewares=traefik-forward-auth"
+      - "traefik#.http.routers.whoami.middlewares=traefik-forward-auth"
 
 networks:
   default:
