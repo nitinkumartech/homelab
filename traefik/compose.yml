@@ -48,6 +48,8 @@ services:
     environment:
       - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
       - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_DNS_API_TOKEN}
+    extra_hosts: 
+      - host.docker.internal:172.17.0.1
 
   portainer:
     image: portainer/portainer-ce:latest
